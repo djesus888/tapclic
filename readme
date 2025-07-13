@@ -1,0 +1,56 @@
+# Teresuelvo
+
+## Descripción
+Proyecto Teresuelvo: plataforma de servicios donde usuarios pueden registrarse como clientes o prestadores. Incluye chat, pagos, token integrado, sanciones y panel administrativo.
+
+## Estructura de Carpetas
+
+- **backend/**: Código PHP (configuración, controladores, modelos, rutas).
+- **frontend/**: Interface web (Vue 3).
+- **mobile/**: APK Android y estructura iOS.
+- **database/**: Archivo de exportación MySQL.
+- **docs/**: Documentación técnica (instalación, uso).
+- **.gitignore**: Archivos ignorados por Git.
+
+## Requisitos
+- PHP >= 7.4
+- Composer
+- Node.js >= 14
+- MySQL
+- Servidor web (Apache/Nginx)
+- Ionic CLI (opcional para móvil)
+
+## Instalación Local (Backend)
+1. Clonar repo: `git clone https://tudominio.com/teresuelvo.git`
+2. Entrar a carpeta: `cd teresuelvo/backend`
+3. Instalar dependencias (si usas Composer/Laravel): `composer install`
+4. Configurar `.env` con credenciales de BD y JWT secret.
+5. Crear base de datos y ejecutar `teresuelvo.sql`.
+6. Iniciar servidor: `php -S localhost:8000 -t public`
+
+## Instalación Local (Frontend)
+1. Entrar a carpeta: `cd teresuelvo/frontend`
+2. Instalar dependencias: `npm install`
+3. Iniciar servidor dev: `npm run dev`
+4. Abrir en navegador: `http://localhost:3000`
+
+## App Móvil (Android/iOS)
+- Android: copiar `mobile/android/Teresuelvo.apk` al dispositivo e instalar.
+- iOS: abrir proyecto en Xcode (`mobile/ios/Teresuelvo.xcodeproj`) y compilar.
+
+## Uso
+1. Registrarse como cliente o prestador.
+2. Clientes pueden ver servicios y solicitarlos.
+3. Prestadores activan “Disponible” y reciben solicitudes.
+4. El chat y notificaciones facilitan la comunicación.
+5. Al 5° incumplimiento, prestador queda inhabilitado y debe pagar multa.
+6. Panel admin controla usuarios, sanciones, estadísticas y pagos.
+
+## Credenciales Demo
+- **Admin**: admin@teresuelvo.com / password123
+- **Cliente**: cliente@teresuelvo.com / password123
+- **Prestador**: prestador@teresuelvo.com / password123
+
+## Créditos
+- Desarrollado por ChatGPT.
+- Diseño y conceptualización propios del cliente.
