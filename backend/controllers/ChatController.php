@@ -1,5 +1,11 @@
 <?php
-require_once '../models/Message.php';
+
+
+
+
+
+require_once __DIR__ . '/../models/Message.php';
+
 
 class ChatController {
     public function getMessages($data) {
