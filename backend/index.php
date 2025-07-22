@@ -1,54 +1,147 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TapClic | App de Servicios</title>
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
-</head>
-<body>
-  <header>
-    <nav class="navbar">
-      <div class="logo">TapClic</div>
-      <ul class="nav-links">
-        <li><a href="#servicios">Servicios</a></li>
-        <li><a href="#registro">Registro</a></li>
-        <li><a href="#contacto">Contacto</a></li>
-        <li><a href="/login.html">Ingresar</a></li>
-      </ul>
-    </nav>
-  </header>
+<?php
+// backend/index.php
 
-  <section id="inicio" class="hero">
-    <h1>Conecta con tu solución ideal</h1>
-    <p>Solicita o presta servicios fácilmente con TapClic</p>
-    <a href="#registro" class="btn">Comenzar</a>
-  </section>
+// --- CONFIGURACIÓN DE CORS PARA API ---
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-  <section id="servicios" class="services">
-    <h2>Servicios Disponibles</h2>
-    <div class="service-grid">
-      <div class="service-card">Transporte</div>
-      <div class="service-card">Envíos</div>
-      <div class="service-card">Mandados</div>
-      <div class="service-card">Soporte técnico</div>
-    </div>
-  </section>
+// Si es preflight de CORS
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
-  <section id="registro" class="registro">
-    <h2>Únete a TapClic</h2>
-    <a href="/registro.html" class="btn">Registrarme</a>
-  </section>
+// Detectar la ruta solicitada
+$request_uri = $_SERVER['REQUEST_URI'];
+$method = $_SERVER['REQUEST_METHOD'];
 
-  <section id="contacto" class="contacto">
-    <h2>Contacto</h2>
-    <p>¿Tienes preguntas? Escríbenos a <a href="mailto:soporte@teresuelvo.com">soporte@teresuelvo.com</a></p>
-  </section>
+// Limpiar la URI para obtener solo el path después de /backend/
+$base_path = str_replace('/backend', '', parse_url($request_uri, PHP_URL_PATH));
 
-  <footer>
-    <p>&copy; 2025 TapClic. Todos los derechos reservados.</p>
-  </footer>
-</body>
-</html>
 
+
+
+
+
+// Si se accede a la raíz del backend, mostrar el frontend
+if ($_SERVER['REQUEST_URI'] === '/' || $_SERVER['REQUEST_URI'] === '/backend/' || $_SERVER['REQUEST_URI'] === '/backend/index.php') {
+    $frontendPath = __DIR__ . '/../frontend/index.html';
+
+    if (file_exists($frontendPath)) {
+        header("Content-Type: text/html; charset=UTF-8");
+        readfile($frontendPath);
+        exit;
+    } else {
+        http_response_code(404);
+        echo "<h1 style='text-align:center; color:red;'>❌ No se encontró frontend/index.html</h1>";
+        exit;
+    }
+}
+
+
+
+// --- CARGAR DEPENDENCIAS SOLO SI ES API ---
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/models/User.php';
+require_once __DIR__ . '/controllers/AuthController.php';
+
+// Leer datos JSON enviados
+$input_data = json_decode(file_get_contents("php://input"), true);
+
+// --- RUTAS API ---
+switch (true) {
+
+    // Registro de usuario
+    case preg_match('#^/api/register$#', $base_path):
+        if ($method === 'POST') {
+            $auth = new AuthController();
+            $auth->register($input_data);
+        } else {
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Método no permitido"]);
+        }
+        break;
+
+    // Login de usuario
+    case preg_match('#^/api/login$#', $base_path):
+        if ($method === 'POST') {
+            $auth = new AuthController();
+            $auth->login($input_data);
+        } else {
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Método no permitido"]);
+        }
+        break;
+
+    // Si no existe la ruta
+default:
+    http_response_code(404);
+    // Si es petición AJAX o API, respondemos en JSON
+    if (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Ruta no encontrada"
+        ]);
+    } else {
+        // Si es un navegador, mostramos HTML con estilo
+        echo '
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Error 404 | TapClic</title>
+          <style>
+            body {
+              background: linear-gradient(135deg, #ff416c, #ff4b2b);
+              color: #fff;
+              text-align: center;
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+            }
+            h1 {
+              font-size: 4rem;
+              margin-bottom: 1rem;
+            }
+            p {
+              font-size: 1.2rem;
+              margin-bottom: 2rem;
+            }
+            a {
+              display: inline-block;
+              padding: 12px 20px;
+              background: #fff;
+              color: #ff416c;
+              text-decoration: none;
+              border-radius: 8px;
+              font-weight: bold;
+              transition: 0.3s;
+            }
+            a:hover {
+              background: #f0f0f0;
+            }
+            .emoji {
+              font-size: 5rem;
+              margin-bottom: 1rem;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="emoji">🚧</div>
+          <h1>404</h1>
+          <p>Ups... La ruta solicitada no existe en <strong>TapClic Backend</strong></p>
+          <a href="/frontend/index.html">Volver al inicio</a>
+        </body>
+        </html>
+        ';
+    }
+    break;    
+}
+ 

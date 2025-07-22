@@ -17,25 +17,46 @@ class User {
         $this->conn = $db;
     }
 
+    /**
+     * Crear usuario
+     */
+    public function create() {
+        $query = "INSERT INTO {$this->table_name} 
+                    (name, email, password, role, token_balance, created_at)
+                  VALUES
+                    (:name, :email, :password, :role, :token_balance, NOW())";
 
-    public function readAll() {
-        $query = "SELECT id, name, email, role, token_balance, created_at FROM " . $this->table_name;
-        $stmt  = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
+        $stmt = $this->conn->prepare($query);
+
+        // Si no tiene nombre o token_balance, ponemos valores por defecto
+        $this->name          = $this->name ?? '';
+        $this->token_balance = $this->token_balance ?? 0;
+
+        $stmt->bindParam(':name', $this->name);
+        $stmt->bindParam(':email', $this->email);
+        $stmt->bindParam(':password', $this->password);
+        $stmt->bindParam(':role', $this->role);
+        $stmt->bindParam(':token_balance', $this->token_balance);
+
+        return $stmt->execute();
     }
 
-    public function readOne($id) {
-        $query = "SELECT id, name, email, role, token_balance, created_at
-                  FROM " . $this->table_name . " WHERE id = ? LIMIT 0,1";
+    /**
+     * Buscar usuario por email
+     */
+    public function findByEmail($email) {
+        $query = "SELECT * FROM {$this->table_name} WHERE email = :email LIMIT 1";
         $stmt  = $this->conn->prepare($query);
-        $stmt->bindParam(1, $id);
+        $stmt->bindParam(':email', $email);
         $stmt->execute();
+
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if($row) {
+
+        if ($row) {
             $this->id            = $row['id'];
             $this->name          = $row['name'];
             $this->email         = $row['email'];
+            $this->password      = $row['password'];
             $this->role          = $row['role'];
             $this->token_balance = $row['token_balance'];
             $this->created_at    = $row['created_at'];
@@ -44,62 +65,35 @@ class User {
         return false;
     }
 
-    public function create() {
-        $query = "INSERT INTO " . $this->table_name . " 
-                  SET name=:name, email=:email, password=:password, role=:role, token_balance=:token_balance";
+    /**
+     * Leer todos los usuarios
+     */
+    public function readAll() {
+        $query = "SELECT id, name, email, role, token_balance, created_at FROM {$this->table_name}";
         $stmt  = $this->conn->prepare($query);
-
-        // sanitize
-        $this->name          = htmlspecialchars(strip_tags($this->name));
-        $this->email         = htmlspecialchars(strip_tags($this->email));
-        $this->password      = password_hash($this->password, PASSWORD_BCRYPT);
-        $this->role          = htmlspecialchars(strip_tags($this->role));
-        $this->token_balance = htmlspecialchars(strip_tags($this->token_balance));
-
-        // bind
-        $stmt->bindParam(":name", $this->name);
-        $stmt->bindParam(":email", $this->email);
-        $stmt->bindParam(":password", $this->password);
-        $stmt->bindParam(":role", $this->role);
-        $stmt->bindParam(":token_balance", $this->token_balance);
-
-        if($stmt->execute()) {
-            return true;
-        }
-        return false;
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function update() {
-        $query = "UPDATE " . $this->table_name . "
-                  SET name=:name, email=:email, role=:role, token_balance=:token_balance
-                  WHERE id=:id";
+    /**
+     * Leer un usuario por ID
+     */
+    public function readOne($id) {
+        $query = "SELECT id, name, email, role, token_balance, created_at 
+                  FROM {$this->table_name} WHERE id = :id LIMIT 1";
         $stmt  = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
 
-        // sanitize
-        $this->name          = htmlspecialchars(strip_tags($this->name));
-        $this->email         = htmlspecialchars(strip_tags($this->email));
-        $this->role          = htmlspecialchars(strip_tags($this->role));
-        $this->token_balance = htmlspecialchars(strip_tags($this->token_balance));
-        $this->id            = htmlspecialchars(strip_tags($this->id));
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // bind
-        $stmt->bindParam(":name", $this->name);
-        $stmt->bindParam(":email", $this->email);
-        $stmt->bindParam(":role", $this->role);
-        $stmt->bindParam(":token_balance", $this->token_balance);
-        $stmt->bindParam(":id", $this->id);
-
-        if($stmt->execute()) {
-            return true;
-        }
-        return false;
-    }
-
-    public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
-        $stmt  = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->id);
-        if($stmt->execute()) {
+        if ($row) {
+            $this->id            = $row['id'];
+            $this->name          = $row['name'];
+            $this->email         = $row['email'];
+            $this->role          = $row['role'];
+            $this->token_balance = $row['token_balance'];
+            $this->created_at    = $row['created_at'];
             return true;
         }
         return false;

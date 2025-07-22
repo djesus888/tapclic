@@ -1,27 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Rutas iniciales
+// Importar las vistas
+import Bienvenida from './components/Bienvenida.vue'
+import Login from './components/Login.vue'
+import Registro from './components/Registro.vue'
+import Dashboard from './views/Dashboard.vue'
+import Profile from './views/Profile.vue'
+
 const routes = [
-  {
-    path: '/',
-    name: 'Inicio',
-    component: () => import('../views/Home.vue')
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/Login.vue')
-  },
-  {
-    path: '/registro',
-    name: 'Registro',
-    component: () => import('../views/Registro.vue')
-  },
-  {
-    path: '/servicios',
-    name: 'Servicios',
-    component: () => import('../views/Servicios.vue')
-  }
+  { path: '/', component: Bienvenida },   // << ESTA SERÁ LA PANTALLA INICIAL
+  { path: '/login', component: Login },
+  { path: '/registro', component: Registro },
+  { path: '/dashboard', component: Dashboard },
+  { path: '/profile', component: Profile }
 ]
 
 const router = createRouter({
