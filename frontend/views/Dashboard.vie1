@@ -1,0 +1,323 @@
+<template>
+  <div class="dashboard-container">
+    <!-- Barra superior -->
+    <header class="topbar">
+      <div class="logo">
+        <span>Tapclic</span>
+      </div>
+
+      <!-- Menú desktop -->
+      <nav class="nav-links">
+        <router-link to="/Profile">Mi Perfil</router-link>
+        <router-link to="/Settings">Configuración</router-link>
+        <router-link v-if="isAdmin" to="/admin">Panel Admin</router-link>
+        <button @click="logout" class="logout-btn">Cerrar sesión</button>
+      </nav>
+
+      <!-- Menú hamburguesa para móvil -->
+      <div class="hamburger" @click="toggleMenu">
+        ☰
+      </div>
+    </header>
+
+    <!-- Menú móvil desplegable -->
+    <transition name="slide-fade">
+      <div class="mobile-menu" v-if="showMenu">
+        <router-link @click="closeMenu" to="/Profile">Mi Perfil</router-link>
+        <router-link @click="closeMenu" to="/Settings">Configuración</router-link>
+        <router-link v-if="isAdmin" @click="closeMenu" to="/admin">Panel Admin</router-link>
+        <button @click="logout" class="logout-btn">Cerrar sesión</button>
+      </div>
+    </transition>
+
+    <!-- Contenido principal -->
+    <main>
+      <!-- Resumen general -->
+      <section class="dashboard-summary">
+        <div class="summary-card" v-for="item in summary" :key="item.title">
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.value }}</p>
+        </div>
+      </section>
+
+      <!-- Acciones rápidas -->
+      <section class="quick-actions">
+        <h2>Acciones rápidas</h2>
+        <div class="actions-grid">
+          <button @click="goTo('services')">📦 Solicitar servicio</button>
+          <button @click="goTo('pending')">⏳ Ver pendientes</button>
+          <button @click="goTo('wallet')">💰 Mi billetera</button>
+          <button @click="goTo('support')">📞 Soporte</button>
+        </div>
+      </section>
+
+      <!-- Notificaciones -->
+      <section class="notifications">
+        <h2>Notificaciones</h2>
+        <ul>
+          <li v-for="(notif, index) in notifications" :key="index">
+            {{ notif.message }}
+          </li>
+        </ul>
+      </section>
+    </main>
+  </div>
+<!--</template> -->
+
+
+
+
+
+
+
+
+
+<!-- <templatr> -->
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-900 text-white p-4">
+      <h2 class="text-xl font-bold">TapClic</h2>
+      <ul class="mt-4 space-y-2">
+        <li v-for="link in filteredLinks" :key="link.name">
+          <RouterLink :to="link.path" class="block p-2 hover:bg-gray-700 rounded">
+            {{ link.name }}
+          </RouterLink>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="flex-1 p-6 bg-gray-100">
+      <router-view />
+    </main>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+
+// Menú dinámico según rol
+const menuLinks = {
+  client: [
+    { name: 'Mis Pedidos', path: '/dashboard/client/orders' },
+    { name: 'Chat', path: '/dashboard/chat' },
+    { name: 'Pagos', path: '/dashboard/payments' }
+  ],
+  provider: [
+    { name: 'Solicitudes', path: '/dashboard/provider/requests' },
+    { name: 'Chat', path: '/dashboard/chat' },
+    { name: 'Estadísticas', path: '/dashboard/provider/stats' }
+  ],
+  admin: [
+    { name: 'Usuarios', path: '/dashboard/admin/users' },
+    { name: 'Reportes', path: '/dashboard/admin/reports' },
+    { name: 'Pagos y Comisiones', path: '/dashboard/admin/payments' }
+  ]
+}
+
+const filteredLinks = computed(() => menuLinks[auth.role] || [])
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+import { useAuthStore } from "@/stores/auth"; // Importar Pinia store
+import { mapState } from "pinia";
+
+export default {
+  name: "Dashboard",
+  data() {
+    return {
+      showMenu: false,
+      summary: [
+        { title: "Servicios solicitados", value: 0 },
+        { title: "Servicios completados", value: 0 },
+        { title: "Saldo en tokens", value: "0 TERV" },
+        { title: "Calificación", value: "0/5" },
+      ],
+      notifications: [],
+    };
+  },
+  computed: {
+    ...mapState(useAuthStore, ["user", "role"]),
+    isAdmin() {
+      // Si el rol del usuario autenticado es admin, mostramos el panel
+      return this.role === "admin";
+    },
+  },
+  methods: {
+    toggleMenu() {
+      this.showMenu = !this.showMenu;
+    },
+    closeMenu() {
+      this.showMenu = false;
+    },
+    goTo(page) {
+      this.$router.push(`/${page}`);
+    },
+    logout() {
+      const authStore = useAuthStore();
+      authStore.logout(); // Limpia usuario y token
+      this.closeMenu();   // Cierra menú móvil si está abierto
+      this.$router.push("/login"); // Redirige al login
+    },
+  },
+};
+</script>
+
+<style scoped>
+/* === Layout general === */
+.dashboard-container {
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Barra superior === */
+.topbar {
+  background: #007bff;
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-links a,
+.logout-btn {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-links a:hover,
+.logout-btn:hover {
+  text-decoration: underline;
+}
+
+.hamburger {
+  font-size: 1.8rem;
+  display: none;
+  cursor: pointer;
+}
+
+/* === Menú móvil === */
+.mobile-menu {
+  background: #0056b3;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+.mobile-menu a,
+.mobile-menu button {
+  padding: 10px;
+  text-align: left;
+  color: white;
+  border: none;
+  background: transparent;
+  text-decoration: none;
+}
+
+/* Animación del menú móvil */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* === Dashboard Summary === */
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+.summary-card {
+  background: #f8f9fa;
+  padding: 15px;
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* === Acciones rápidas === */
+.quick-actions {
+  padding: 20px;
+}
+.quick-actions .actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 15px 0;
+}
+.quick-actions button {
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.quick-actions button:hover {
+  background: #0056b3;
+}
+
+/* === Notificaciones === */
+.notifications {
+  padding: 20px;
+}
+.notifications ul {
+  list-style: none;
+  padding: 0;
+}
+.notifications li {
+  background: #fff3cd;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-left: 4px solid #ffc107;
+  border-radius: 5px;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+  .hamburger {
+    display: block;
+  }
+}
+</style>

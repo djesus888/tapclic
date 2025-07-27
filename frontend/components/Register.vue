@@ -7,27 +7,33 @@
         <!-- Nombre -->
         <div class="form-group">
           <label>Nombre completo</label>
-          <input v-model="name" type="text" required />
+          <input v-model="name" type="text" required placeholder="Nombre Completo"/>
         </div>
 
         <!-- Correo -->
         <div class="form-group">
           <label>Correo electrónico</label>
-          <input v-model="email" type="email" required />
+          <input v-model="email" type="email" required placeholder="tapclic@email.com"/>
         </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+         <label>Número de teléfono</label>
+         <input v-model="phone" type="tel" required placeholder="0414XXXXXXX"/>
+         </div>
 
         <!-- Contraseña -->
         <div class="form-group">
           <label>Contraseña</label>
-          <input v-model="password" type="password" required />
+          <input v-model="password" type="password" required placeholder="xxxxxxxxxxx"/>
         </div>
 
         <!-- Rol -->
         <div class="form-group">
           <label>Rol</label>
           <select v-model="role">
-            <option value="cliente">Cliente</option>
-            <option value="proveedor">Proveedor</option>
+            <option value="user">Cliente</option>
+            <option value="driver">Proveedor</option>
           </select>
         </div>
 
@@ -56,20 +62,22 @@ export default {
     return {
       name: "",
       email: "",
+      phone: "",
       password: "",
-      role: "cliente", // valor por defecto
+      role: "user", // valor por defecto
       registerMsg: ""
     };
   },
   methods: {
     async register() {
       try {
-        const res = await fetch("/backend/routes/api.php/api/register", {
+        const res = await fetch("/api/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: this.name,
             email: this.email,
+             phone: this.phone,
             password: this.password,
             role: this.role
           })

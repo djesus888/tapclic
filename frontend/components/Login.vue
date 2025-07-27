@@ -1,37 +1,43 @@
-<template>
-  <div class="login-container">  <!-- uso la clase del registro para el contenedor -->
-    <div class="login-card">         <!-- tarjeta con estilos de register-box adaptados -->
+... ,<template>
+  <div class="login-container">
+    <div class="login-card">
       <!-- LOGO / TÍTULO -->
-      <h2 class="login-title">
-        🚀 TapClic
-      </h2>
+      <h2 class="login-title">🚀 TapClic</h2>
 
       <!-- FORMULARIO LOGIN -->
       <form @submit.prevent="handleLogin" class="register-form">
-        <!-- EMAIL -->
+        <!-- IDENTIFICADOR (Correo o Teléfono) -->
         <div class="form-group">
-          <label for="email">Correo electrónico</label>
+          <label for="identifier">Correo electrónico o Teléfono</label>
           <input
-            id="email"
-            v-model.trim="email"
-            type="email"
+            id="identifier"
+            v-model.trim="identifier"
+            type="text"
             required
-            placeholder="tuemail@ejemplo.com"
-            aria-label="Correo electrónico"
+            placeholder="tuemail@ejemplo.com o 0414XXXXXXX"
+            aria-label="Correo electrónico o teléfono"
           />
         </div>
 
         <!-- PASSWORD -->
-        <div class="form-group">
+        <div class="form-group" style="position: relative;">
           <label for="password">Contraseña</label>
           <input
             id="password"
             v-model.trim="password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             required
             placeholder="********"
             aria-label="Contraseña"
           />
+          <button
+            type="button"
+            @click="togglePasswordVisibility"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; font-size: 1rem;"
+            aria-label="Mostrar u ocultar contraseña"
+          >
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
         </div>
 
         <!-- BOTÓN LOGIN -->
@@ -67,7 +73,9 @@
           v-if="showForgotPassword"
           class="forgot-box mt-6 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20"
         >
-          <h3 class="text-lg font-semibold text-gray-200 mb-3">Recuperar contraseña</h3>
+          <h3 class="text-lg font-semibold text-gray-200 mb-3">
+            Recuperar contraseña
+          </h3>
 
           <input
             v-model.trim="resetEmail"
@@ -95,70 +103,179 @@
 
 
 <script>
+import Swal from "sweetalert2";
+import { useAuthStore } from "@/stores/auth";
+
 export default {
   name: "Login",
   data() {
     return {
-      email: "",
+      identifier: "", // Puede ser correo o teléfono
       password: "",
-      loginMsg: "",
       loading: false,
       showForgotPassword: false,
       resetEmail: "",
-      resetMsg: "",
-      loadingReset: false
+      loadingReset: false,
+      showPassword: false, // ✅ Mostrar/ocultar contraseña
+      loginMsg: "",
     };
   },
+
+  computed: {
+    // ✅ Validaciones de formato
+    isEmail() {
+      return /\S+@\S+\.\S+/.test(this.identifier);
+    },
+    isPhone() {
+      return /^[0-9]{7,15}$/.test(this.identifier);
+    },
+  },
+
   methods: {
-    async fetchAPI(endpoint, bodyData) {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyData)
-      });
-
-      const text = await response.text();
-      console.log("📩 Respuesta del servidor:", text);
-
+    /**
+     * ✅ Petición POST con manejo avanzado de errores
+     */
+    async fetchAPI(endpoint, payload) {
       try {
-        return JSON.parse(text);
-      } catch {
-        throw new Error("Respuesta inválida del servidor");
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Error ${response.status}: ${
+              errorText || "El servidor no respondió correctamente"
+            }`
+          );
+        }
+
+        const result = await response.json();
+        if (!result || typeof result !== "object") {
+          throw new Error("La respuesta del servidor está mal formateada");
+        }
+
+        return result;
+      } catch (error) {
+        if (error.name === "TypeError") {
+          throw new Error(
+            "No se pudo conectar con el servidor. Verifica tu conexión a internet."
+          );
+        }
+        throw error;
       }
     },
 
+    /**
+     * ✅ Inicio de sesión profesional con validaciones
+     */
     async handleLogin() {
-      if (!this.email || !this.password) {
-        this.loginMsg = `<span class="text-red-400">Completa todos los campos</span>`;
+      // ✅ Validaciones locales
+      if (!this.identifier || !this.password) {
+        Swal.fire({
+          title: "⚠️ Campos incompletos",
+          text: "Por favor ingresa tu correo o teléfono y contraseña",
+          icon: "warning",
+          confirmButtonColor: "#3085d6",
+        });
+        return;
+      }
+
+      if (!this.isEmail && !this.isPhone) {
+        Swal.fire({
+          title: "⚠️ Formato inválido",
+          text: "Debes ingresar un correo electrónico válido o un número de teléfono",
+          icon: "warning",
+        });
         return;
       }
 
       this.loading = true;
-      this.loginMsg = `<span class="text-gray-300">Procesando...</span>`;
+
+      // ✅ Mostrar alerta de carga
+      Swal.fire({
+        title: "Iniciando sesión...",
+        text: "Por favor espera",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
 
       try {
-        const data = await this.fetchAPI("/backend/routes/api.php/api/login", {
-          email: this.email,
-          password: this.password
-        });
+        const payload = this.isEmail
+          ? { email: this.identifier.trim(), password: this.password }
+          : { phone: this.identifier.trim(), password: this.password };
 
-        if (data.status === "success") {
-          this.loginMsg = `<span class="text-green-400">${data.message || "Login exitoso"}</span>`;
+        const data = await this.fetchAPI("/api/login", payload);
 
-          localStorage.setItem("authToken", data.token);
-          localStorage.setItem("userEmail", data.user.email);
-          localStorage.setItem("userRole", data.user.role);
+        // ✅ Validar respuesta
+        const isValidResponse =
+          data && data.status === "success" && data.token && typeof data.user === "object";
 
-          setTimeout(() => window.location.href = "/dashboard.html", 1000);
+        if (isValidResponse) {
+          const authStore = useAuthStore();
 
+          // ✅ Asegurar que si el backend no manda rol, asignamos uno temporal
+          const backendRole = data.user?.role;
+          const finalRole = backendRole && backendRole !== "" ? backendRole : "pending"; 
+          // ✅ Usamos "pending" en vez de "guest" para diferenciarlo de un invitado real
+
+          // ✅ Guardar sesión en Pinia
+          authStore.login({
+            user: data.user || {},
+            token: data.token,
+            role: finalRole,
+          });
+
+          // ✅ Guardar también en localStorage para Dashboard
+          localStorage.setItem("role", finalRole);
+
+          console.log("✅ ROLE GUARDADO:", finalRole);
+
+          // ✅ Determinar redirección según rol
+          const routesByRole = {
+            admin: "/dashboard/admin/users",
+            provider: "/dashboard/provider/requests",
+            client: "/dashboard/client/home",
+          };
+
+          const redirectPath = routesByRole[finalRole] || "/dashboard";
+
+          // ✅ Mostrar éxito
+          Swal.fire({
+            icon: "success",
+            title: "Bienvenido",
+            text: `Hola, ${data.user?.name || "usuario"}`,
+            timer: 1800,
+            showConfirmButton: false,
+          });
+
+          // ✅ Redirigir con seguridad después del Swal
+          setTimeout(() => {
+            this.$nextTick(() => {
+              this.$router.push(redirectPath);
+            });
+          }, 1500);
         } else {
-          this.loginMsg = `<span class="text-red-400">${data.message || "Error desconocido"}</span>`;
+          // ❌ Respuesta inválida del backend
+          Swal.fire({
+            icon: "error",
+            title: "Error de autenticación",
+            text: data?.message || "Usuario o contraseña incorrectos",
+          });
         }
-      } catch (error) {
-        console.error("❌ Error en login:", error);
-        this.loginMsg = `<span class="text-red-400">${error.message}</span>`;
+      } catch (err) {
+        // ❌ Error general de red/servidor
+        Swal.fire({
+          icon: "error",
+          title: "Error de conexión",
+          text: err.message || "No se pudo procesar la solicitud",
+        });
       } finally {
         this.loading = false;
+        this.password = ""; // ✅ Limpia la contraseña por seguridad
       }
     },
 
@@ -166,35 +283,63 @@ export default {
       this.showForgotPassword = !this.showForgotPassword;
     },
 
+    /**
+     * ✅ Recuperar contraseña con feedback
+     */
     async handleResetPassword() {
       if (!this.resetEmail) {
-        this.resetMsg = `<span class="text-red-400">Por favor ingresa tu correo</span>`;
+        Swal.fire({
+          title: "⚠️ Campo vacío",
+          text: "Ingresa tu correo electrónico para continuar",
+          icon: "warning",
+        });
         return;
       }
 
-      this.loadingReset = true;
-      this.resetMsg = `<span class="text-gray-300">Enviando solicitud...</span>`;
+      Swal.fire({
+        title: "Procesando...",
+        text: "Estamos verificando tu solicitud",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
 
       try {
-        const data = await this.fetchAPI("/backend/routes/api.php/api/forgot-password", {
-          email: this.resetEmail
+        const data = await this.fetchAPI("/api.php/api/forgot-password", {
+          email: this.resetEmail.trim(),
         });
 
         if (data.status === "success") {
-          this.resetMsg = `<span class="text-green-400">${data.message}</span>`;
+          Swal.fire({
+            icon: "success",
+            title: "Correo enviado",
+            text: data.message || "Revisa tu bandeja de entrada",
+          });
         } else {
-          this.resetMsg = `<span class="text-red-400">${data.message || "Error en recuperación"}</span>`;
+          Swal.fire({
+            icon: "error",
+            title: "No se pudo procesar",
+            text: data.message || "Intenta de nuevo más tarde",
+          });
         }
       } catch (err) {
-        console.error("❌ Error en recuperación:", err);
-        this.resetMsg = `<span class="text-red-400">${err.message}</span>`;
-      } finally {
-        this.loadingReset = false;
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.message,
+        });
       }
-    }
-  }
+    },
+
+    // ✅ Alternar visibilidad de contraseña
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
+  },
 };
 </script>
+
+
 
 <style scoped>
 /* Usamos estilos adaptados del registro para que se vea igual en dimensiones */
@@ -224,8 +369,7 @@ export default {
   text-align: center;
   font-size: 26px;
   font-weight: bold;
-  margin-bottom: 20px;
-  color: #fff;
+  margin-bottom: 20px;                                                  color: #fff;
   text-shadow: 0 0 5px rgba(0,0,0,0.7);
 }
 
@@ -272,10 +416,8 @@ export default {
 .btn-submit {
   width: 100%;
   padding: 14px;
-  background: #2563eb; /* color azul */
-  color: white;
-  font-size: 17px;
-  font-weight: 600;
+  background: #2563eb; /* color azul */                                 color: white;
+  font-size: 17px;                                                      font-weight: 600;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -327,8 +469,7 @@ export default {
 }
 
 /* input para recuperación */
-.form-group-input {
-  padding: 12px;
+.form-group-input {                                                     padding: 12px;
   border: 1px solid #334155;
   border-radius: 8px;
   font-size: 15px;
@@ -342,10 +483,8 @@ export default {
 .form-group-input::placeholder {
   color: #94a3b8;
 }
-
 .form-group-input:focus {
-  border-color: #3b82f6;
-  background: #1e293b;
+  border-color: #3b82f6;                                                background: #1e293b;
 }
 
 /* RESPONSIVE */
@@ -357,7 +496,6 @@ export default {
     font-size: 22px;
   }
   .btn-submit {
-    font-size: 16px;
-  }
+    font-size: 16px;                                                    }
 }
 </style>
