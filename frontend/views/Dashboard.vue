@@ -6,9 +6,14 @@
         <h1>TapClic</h1>
       </div>
 
-      <!-- Botón notificaciones -->
-      <button class="notif-btn" @click="toggleNotifications">
-        🔔 <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+      <!-- Botón notificaciones mejorado -->
+      <button class="notif-btn modern-icon" @click="toggleNotifications">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon-bell" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 2C10.3 2 9 3.3 9 5V5.3C6.7 6.2 5 8.4 5 11V17L3 19V20H21V19L19 17V11C19 8.4 17.3 6.2 15 5.3V5C15 3.3 13.7 2 12 2ZM12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22Z"
+          />
+        </svg>
+        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
       </button>
 
       <!-- Botón menú móvil -->
@@ -79,19 +84,20 @@
       <router-view v-else />
     </main>
 
-    <!-- ✅ PANEL LATERAL DE NOTIFICACIONES -->
+    <!-- ✅ PANEL LATERAL DE NOTIFICACIONES mejorado -->
     <transition name="slide">
-      <aside v-if="showNotifications" class="notifications-panel">
-        <header>
+      <aside v-if="showNotifications" class="notifications-panel improved">
+        <header class="notif-header">
           <h3>Notificaciones</h3>
-          <button @click="toggleNotifications">✖</button>
+          <button class="close-btn" @click="toggleNotifications">✕</button>
         </header>
         <div class="notifications-list">
-          <div 
-            v-for="notif in notifications" 
-            :key="notif.id" 
+          <div
+            v-for="notif in notifications"
+            :key="notif.id"
             class="notif-item"
             :class="{ unread: !notif.read }"
+            @click="markAsRead(notif)"
           >
             <p>{{ notif.message }}</p>
             <small>{{ formatDate(notif.date) }}</small>
@@ -101,6 +107,9 @@
     </transition>
   </div>
 </template>
+
+
+
 
 <script>
 import { useAuthStore } from "@/stores/auth";
@@ -119,8 +128,11 @@ export default {
   },
 
   computed: {
+    /** ✅ Cuenta notificaciones no leídas */
     unreadCount() {
-      return this.notifications.filter(n => !n.read).length;
+      return Array.isArray(this.notifications)
+        ? this.notifications.filter(n => !n.is_read).length
+        : 0;
     }
   },
 
@@ -147,7 +159,7 @@ export default {
   },
 
   methods: {
-    /** ✅ Obtiene el rol desde Pinia/localStorage */
+    /** ✅ Obtiene el rol desde Pinia o localStorage */
     loadRole() {
       const authStore = useAuthStore();
       if (authStore.role) {
@@ -181,10 +193,27 @@ export default {
     async fetchNotifications() {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://TU_API.com/api/notifications", {
+        const savedUser = JSON.parse(localStorage.getItem("user"));
+        const userId = savedUser?.id;
+
+        if (!userId) {
+          console.error("❌ No se encontró el userId en localStorage");
+          return;
+        }
+
+        const API_BASE = "http://localhost:8000"; // Ajusta si cambias de host
+        const url = `${API_BASE}/backend/api/notifications/${userId}`;
+
+        console.log("📡 Solicitando notificaciones de:", url);
+
+        const res = await axios.get(url, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        this.notifications = res.data;
+
+        this.notifications = Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
       } catch (error) {
         console.error("Error cargando notificaciones:", error);
       }
@@ -195,23 +224,47 @@ export default {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      // 🔗 Conéctate a tu servidor WebSocket
-      this.ws = new WebSocket(`wss://TU_API.com/ws/notifications?token=${token}`);
+      /** this.ws = new WebSocket(`ws://localhost:4000/ws/notifications?token=${token}`); */
+          this.ws = new WebSocket(`ws://localhost:4000?token=${token}`);
 
       this.ws.onopen = () => console.log("✅ WebSocket conectado");
       this.ws.onclose = () => console.log("❌ WebSocket desconectado");
       this.ws.onerror = (e) => console.error("Error WebSocket", e);
 
-      // Cuando llega una nueva notificación
       this.ws.onmessage = (event) => {
         try {
           const notif = JSON.parse(event.data);
           console.log("📩 Nueva notificación:", notif);
-          this.notifications.unshift(notif); // agregar al inicio
+          this.notifications.unshift(notif);
         } catch (err) {
           console.error("Error procesando mensaje WS:", err);
         }
       };
+    },
+
+    /** ✅ Marca como leída y sincroniza con backend */
+    async markAsRead(notification) {
+      if (notification.is_read) return;
+
+      const token = localStorage.getItem("token");
+      const API_BASE = "http://localhost:8000"; // Ajusta si cambias de host
+      const url = `${API_BASE}/backend/api/notifications/read/${notification.id}`;
+
+      try {
+        await axios.put(url, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // ✅ Marca como leído localmente
+        const index = this.notifications.findIndex(n => n.id === notification.id);
+        if (index !== -1) {
+          this.notifications[index].is_read = true;
+        }
+
+        console.log(`📬 Notificación ${notification.id} marcada como leída`);
+      } catch (err) {
+        console.error("Error al marcar como leída:", err);
+      }
     },
 
     toggleMenu() {
@@ -222,7 +275,7 @@ export default {
       this.showMenu = false;
     },
 
-    logout() {
+      logout() {
       const authStore = useAuthStore();
       authStore.logout();
       localStorage.removeItem("role");
@@ -231,15 +284,117 @@ export default {
       this.$router.push("/login");
     },
 
+
+
+
+    /** ✅ Formateo seguro de fecha (soporte MySQL) */
     formatDate(date) {
-      return new Date(date).toLocaleString();
+      if (!date) return "";
+      return new Date(date.replace(" ", "T")).toLocaleString();
     }
-  }
+   }
 };
 </script>
 
 
 <style scoped>
+
+
+
+
+/* Mejora de icono campana */
+.notif-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.icon-bell {
+  width: 26px;
+  height: 26px;
+  color: #333;
+  transition: transform 0.2s;
+}
+
+.notif-btn:hover .icon-bell {
+  transform: scale(1.2);
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: red;
+  color: white;
+  font-size: 10px;
+  border-radius: 50%;
+  padding: 2px 6px;
+}
+
+/* Panel de notificaciones */
+.notifications-panel.improved {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  max-height: 100%;
+  background: #fff;
+  border-left: 1px solid #ddd;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  z-index: 9999;
+  padding: 0;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #888;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.notifications-list {
+  padding: 12px 16px;
+}
+
+.notif-item {
+  background: #fafafa;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.notif-item:hover {
+  background: #eee;
+}
+
+.notif-item.unread {
+  font-weight: bold;
+  background: #e3f2fd;
+}
+
+
+
+
+
 .notifications-panel {
   position: fixed;
   top: 0;

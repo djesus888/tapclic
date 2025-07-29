@@ -22,8 +22,6 @@ $base_path = str_replace('/backend', '', parse_url($request_uri, PHP_URL_PATH));
 
 
 
-
-
 // Si se accede a la raíz del backend, mostrar el frontend
 if ($_SERVER['REQUEST_URI'] === '/' || $_SERVER['REQUEST_URI'] === '/backend/' || $_SERVER['REQUEST_URI'] === '/backend/index.php') {
     $frontendPath = __DIR__ . '/../frontend/index.html';
@@ -46,6 +44,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/controllers/AuthController.php';
+require_once __DIR__ . '/controllers/NotificationController.php';
+require_once __DIR__ . '/models/Notification.php';
 
 // Leer datos JSON enviados
 $input_data = json_decode(file_get_contents("php://input"), true);
@@ -74,6 +74,45 @@ switch (true) {
             echo json_encode(["status" => "error", "message" => "Método no permitido"]);
         }
         break;
+
+
+// Obtener notificaciones por ID de receptor
+case preg_match('#^/api/notifications/(\d+)$#', $base_path, $matches):
+    if ($method === 'GET') {
+        $userId = (int) $matches[1];
+        $db = (new Database())->getConnection();
+        $controller = new NotificationController($db);
+        $controller->getNotifications($userId);
+    } else {
+        http_response_code(405);
+        echo json_encode(["status" => "error", "message" => "Método no permitido"]);
+    }
+    break;
+
+// Marcar notificación como leída
+case preg_match('#^/api/notifications/read/(\d+)$#', $base_path, $matches):
+    if ($method === 'PUT') {
+        $notifId = (int) $matches[1];
+        $db = (new Database())->getConnection();
+        $controller = new NotificationController($db);
+        $controller->markAsRead($notifId);
+    } else {
+        http_response_code(405);
+        echo json_encode(["status" => "error", "message" => "Método no permitido"]);
+    }
+    break;
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Si no existe la ruta
 default:
