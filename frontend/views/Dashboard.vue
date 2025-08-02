@@ -4,148 +4,176 @@
     <header class="dashboard-header">
       <div class="logo">
         <h1>TapClic</h1>
-      </div>
+      </div><!-- Botón notificaciones mejorado -->
+  <button class="notif-btn modern-icon" @click="toggleNotifications">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon-bell" viewBox="0 0 24 24" fill="currentColor">
+      <path
+        d="M12 2C10.3 2 9 3.3 9 5V5.3C6.7 6.2 5 8.4 5 11V17L3 19V20H21V19L19 17V11C19 8.4 17.3 6.2 15 5.3V5C15 3.3 13.7 2 12 2ZM12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22Z"
+      />
+    </svg>
+    <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+  </button>
 
-      <!-- Botón notificaciones mejorado -->
-      <button class="notif-btn modern-icon" @click="toggleNotifications">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon-bell" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12 2C10.3 2 9 3.3 9 5V5.3C6.7 6.2 5 8.4 5 11V17L3 19V20H21V19L19 17V11C19 8.4 17.3 6.2 15 5.3V5C15 3.3 13.7 2 12 2ZM12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22Z"
-          />
-        </svg>
-        <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
-      </button>
+  <!-- Botón menú móvil -->
+  <button class="menu-toggle" @click="toggleMenu">☰</button>
 
-      <!-- Botón menú móvil -->
-      <button class="menu-toggle" @click="toggleMenu">☰</button>
+  <!-- Menú Desktop -->
+  <nav class="nav-links" v-if="role">
+    <!-- Menú según el rol -->
+    <template v-if="role === 'admin'">
+      <router-link to="/Profile">Perfil</router-link>
+      <router-link to="/admin">Panel Admin</router-link>
+      <router-link to="/Settings">Configuración</router-link>
+      <router-link to="/Users">Usuarios</router-link>
+    </template>
 
-      <!-- Menú Desktop -->
-      <nav class="nav-links" v-if="role">
-        <!-- Menú según el rol -->
-        <template v-if="role === 'admin'">
-          <router-link to="/Profile">Perfil</router-link>
-          <router-link to="/admin">Panel Admin</router-link>
-          <router-link to="/Settings">Configuración</router-link>
-          <router-link to="/Users">Usuarios</router-link>
-        </template>
+    <template v-else-if="role === 'user'">
+      <router-link to="/Profile">Perfil</router-link>
+      <router-link to="/Wallet">Billetera</router-link>
+      <router-link to="/Services">Servicios</router-link>
+      <router-link to="/Orders">Pedidos</router-link>
+      <router-link to="/History">Historial</router-link>
+    </template>
 
-        <template v-else-if="role === 'user'">
-          <router-link to="/Profile">Perfil</router-link>
-          <router-link to="/Wallet">Billetera</router-link>
-          <router-link to="/Services">Servicios</router-link>
-          <router-link to="/Orders">Pedidos</router-link>
-          <router-link to="/History">Historial</router-link>
-        </template>
+    <template v-else-if="role === 'driver'">
+      <router-link to="/Profile">Perfil</router-link>
+      <router-link to="/Settings">Configuración</router-link>
+      <router-link to="/ServicePanel">Panel de Servicios</router-link>
+      <router-link to="/ReceivedOrders">Pedidos Recibidos</router-link>
+      <router-link to="/ServiceStats">Estadísticas</router-link>
+    </template>
 
-        <template v-else-if="role === 'driver'">
-          <router-link to="/Profile">Perfil</router-link>
-          <router-link to="/Settings">Configuración</router-link>
-          <router-link to="/ServicePanel">Panel de Servicios</router-link>
-          <router-link to="/ReceivedOrders">Pedidos Recibidos</router-link>
-          <router-link to="/ServiceStats">Estadísticas</router-link>
-        </template>
+    <!-- Botón logout -->
+    <button @click="logout" class="logout-btn">Cerrar sesión</button>
+  </nav>
+</header>
 
-        <!-- Botón logout -->
-        <button @click="logout" class="logout-btn">Cerrar sesión</button>
-      </nav>
+<!-- Menú móvil -->
+<div class="mobile-menu" v-if="showMenu && role">
+  <template v-if="role === 'admin'">
+    <router-link @click="closeMenu" to="/Profile">Perfil</router-link>
+    <router-link @click="closeMenu" to="/admin">Panel Admin</router-link>
+    <router-link @click="closeMenu" to="/Settings">Configuración</router-link>
+    <router-link @click="closeMenu" to="/Users">Usuarios</router-link>
+  </template>
+
+  <template v-else-if="role === 'user'">
+    <router-link @click="closeMenu" to="/Profile">Perfil</router-link>
+    <router-link @click="closeMenu" to="/Wallet">Billetera</router-link>
+    <router-link @click="closeMenu" to="/Services">Servicios</router-link>
+    <router-link @click="closeMenu" to="/Orders">Pedidos</router-link>
+    <router-link @click="closeMenu" to="/History">Historial</router-link>
+  </template>
+
+  <template v-else-if="role === 'driver'">
+    <router-link @click="closeMenu" to="/Profile">Perfil</router-link>
+    <router-link @click="closeMenu" to="/Settings">Configuración</router-link>
+    <router-link @click="closeMenu" to="/ServicePanel">Panel de Servicios</router-link>
+    <router-link @click="closeMenu" to="/ReceivedOrders">Pedidos Recibidos</router-link>
+    <router-link @click="closeMenu" to="/ServiceStats">Estadísticas</router-link>
+  </template>
+
+  <button @click="logout" class="logout-btn">Cerrar sesión</button>
+</div>
+
+<!-- Contenido dinámico -->
+<main class="dashboard-content">
+  <div v-if="!role" class="loading-msg">Cargando menú...</div>
+  <component v-else :is="activePanelComponent" />
+</main>
+
+<!-- ✅ PANEL LATERAL DE NOTIFICACIONES mejorado -->
+<transition name="slide">
+  <aside v-if="showNotifications" class="notifications-panel improved">
+    <header class="notif-header">
+      <h3>Notificaciones</h3>
+      <button class="close-btn" @click="toggleNotifications">✕</button>
     </header>
-
-    <!-- Menú móvil -->
-    <div class="mobile-menu" v-if="showMenu && role">
-      <template v-if="role === 'admin'">
-        <router-link @click="closeMenu" to="/Profile">Perfil</router-link>
-        <router-link @click="closeMenu" to="/admin">Panel Admin</router-link>
-        <router-link @click="closeMenu" to="/Settings">Configuración</router-link>
-        <router-link @click="closeMenu" to="/Users">Usuarios</router-link>
-      </template>
-
-      <template v-else-if="role === 'user'">
-        <router-link @click="closeMenu" to="/Profile">Perfil</router-link>
-        <router-link @click="closeMenu" to="/Wallet">Billetera</router-link>
-        <router-link @click="closeMenu" to="/Services">Servicios</router-link>
-        <router-link @click="closeMenu" to="/Orders">Pedidos</router-link>
-        <router-link @click="closeMenu" to="/History">Historial</router-link>
-      </template>
-
-      <template v-else-if="role === 'driver'">
-        <router-link @click="closeMenu" to="/Profile">Perfil</router-link>
-        <router-link @click="closeMenu" to="/Settings">Configuración</router-link>
-        <router-link @click="closeMenu" to="/ServicePanel">Panel de Servicios</router-link>
-        <router-link @click="closeMenu" to="/ReceivedOrders">Pedidos Recibidos</router-link>
-        <router-link @click="closeMenu" to="/ServiceStats">Estadísticas</router-link>
-      </template>
-
-      <button @click="logout" class="logout-btn">Cerrar sesión</button>
+    <div class="notifications-list">
+      <div
+        v-for="notif in notifications"
+        :key="notif.id"
+        class="notif-item"
+        :class="{ unread: !notif.read }"
+        @click="markAsRead(notif)"
+      >
+        <p>{{ notif.message }}</p>
+        <small>{{ formatDate(notif.date) }}</small>
+      </div>
     </div>
+  </aside>
+</transition>
 
-    <!-- Contenido dinámico -->
-    <main class="dashboard-content">
-      <div v-if="!role" class="loading-msg">Cargando menú...</div>
-      <router-view v-else />
-    </main>
-
-    <!-- ✅ PANEL LATERAL DE NOTIFICACIONES mejorado -->
-    <transition name="slide">
-      <aside v-if="showNotifications" class="notifications-panel improved">
-        <header class="notif-header">
-          <h3>Notificaciones</h3>
-          <button class="close-btn" @click="toggleNotifications">✕</button>
-        </header>
-        <div class="notifications-list">
-          <div
-            v-for="notif in notifications"
-            :key="notif.id"
-            class="notif-item"
-            :class="{ unread: !notif.read }"
-            @click="markAsRead(notif)"
-          >
-            <p>{{ notif.message }}</p>
-            <small>{{ formatDate(notif.date) }}</small>
-          </div>
-        </div>
-      </aside>
-    </transition>
   </div>
 </template>
-
 
 
 
 <script>
 import { useAuthStore } from "@/stores/auth";
 import axios from "axios";
+import { io } from "socket.io-client";
+
+// Componentes de panel por rol
+import AdminPanel from "@/components/panels/AdminPanel.vue";
+import ClientPanel from "@/components/client/ClientDashboard.vue";
+import DriverPanel from "@/components/panels/DriverPanel.vue";
+
+// Escucha global para promesas no manejadas
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("🔥 PROMESA NO MANEJADA:", e.reason);
+
+  if (e.reason && e.reason.stack) {
+    console.log("🔍 Stack:", e.reason.stack);
+  }
+
+  alert("❌ Ocurrió un error inesperado:\n" + (e.reason?.message || "Error desconocido"));
+});
 
 export default {
   name: "Dashboard",
+  components: {
+    AdminPanel,
+    ClientPanel,
+    DriverPanel
+  },
   data() {
     return {
       showMenu: false,
       role: null,
       showNotifications: false,
       notifications: [],
-      ws: null // conexión WebSocket
+      ws: null
     };
   },
-
   computed: {
-    /** ✅ Cuenta notificaciones no leídas */
     unreadCount() {
       return Array.isArray(this.notifications)
         ? this.notifications.filter(n => !n.is_read).length
         : 0;
+    },
+    activePanelComponent() {
+      switch (this.role) {
+        case "admin":
+          return "AdminPanel";
+        case "user":
+          return "ClientPanel";
+        case "driver":
+          return "DriverPanel";
+        default:
+          return null;
+      }
     }
   },
-
   mounted() {
     this.loadRole();
-    this.fetchNotifications();   // ✅ Carga inicial desde API REST
-    this.initWebSocket();        // ✅ Conexión en tiempo real
+    this.fetchNotifications();
+    this.initWebSocket();
 
-    // ✅ Si el rol cambia dinámicamente en Pinia, actualizamos el dashboard
     const authStore = useAuthStore();
     this.$watch(
       () => authStore.role,
-      (newRole) => {
+      newRole => {
         if (newRole && newRole !== this.role) {
           console.log("ROL ACTUALIZADO EN TIEMPO REAL:", newRole);
           this.role = newRole;
@@ -153,15 +181,18 @@ export default {
       }
     );
   },
-
   beforeUnmount() {
-    if (this.ws) this.ws.close(); // cerrar conexión cuando salga
+    if (this.ws) this.ws.close();
   },
-
   methods: {
-    /** ✅ Obtiene el rol desde Pinia o localStorage */
+    cleanUser(user) {
+      if (!user || typeof user !== "object") return {};
+      const { id, name, email, role, phone } = user;
+      return { id, name, email, role, phone };
+    },
     loadRole() {
       const authStore = useAuthStore();
+
       if (authStore.role) {
         this.role = authStore.role;
         return;
@@ -169,31 +200,34 @@ export default {
 
       const savedRole = localStorage.getItem("role");
       const savedToken = localStorage.getItem("token");
-      const savedUser = localStorage.getItem("user");
+      const savedUserRaw = localStorage.getItem("user");
 
-      if (savedRole && savedToken) {
+      if (savedRole && savedToken && savedUserRaw) {
+        const savedUser = JSON.parse(savedUserRaw);
+        const clean = this.cleanUser(savedUser);
+
         this.role = savedRole;
         authStore.login({
-          user: savedUser ? JSON.parse(savedUser) : {},
+          user: clean,
           token: savedToken,
           role: savedRole
         });
+
+        localStorage.setItem("user", JSON.stringify(clean));
+        localStorage.setItem("role", savedRole);
       } else {
         authStore.logout();
         this.$router.push("/login");
       }
     },
-
-    /** ✅ Abre/cierra el panel de notificaciones */
     toggleNotifications() {
       this.showNotifications = !this.showNotifications;
     },
-
-    /** ✅ Llama a la API REST para obtener notificaciones previas */
     async fetchNotifications() {
       try {
         const token = localStorage.getItem("token");
-        const savedUser = JSON.parse(localStorage.getItem("user"));
+        const savedUserRaw = localStorage.getItem("user");
+        const savedUser = savedUserRaw ? JSON.parse(savedUserRaw) : {};
         const userId = savedUser?.id;
 
         if (!userId) {
@@ -201,7 +235,7 @@ export default {
           return;
         }
 
-        const API_BASE = "http://localhost:8000"; // Ajusta si cambias de host
+        const API_BASE = "http://localhost:8000";
         const url = `${API_BASE}/backend/api/notifications/${userId}`;
 
         console.log("📡 Solicitando notificaciones de:", url);
@@ -218,36 +252,36 @@ export default {
         console.error("Error cargando notificaciones:", error);
       }
     },
-
-    /** ✅ Conexión WebSocket para recibir nuevas notificaciones */
     initWebSocket() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      /** this.ws = new WebSocket(`ws://localhost:4000/ws/notifications?token=${token}`); */
-          this.ws = new WebSocket(`ws://localhost:4000?token=${token}`);
+      this.ws = io("ws://localhost:4000", {
+        query: { token }
+      });
 
-      this.ws.onopen = () => console.log("✅ WebSocket conectado");
-      this.ws.onclose = () => console.log("❌ WebSocket desconectado");
-      this.ws.onerror = (e) => console.error("Error WebSocket", e);
+      this.ws.on("connect", () => {
+        console.log("✅ WebSocket conectado");
+      });
 
-      this.ws.onmessage = (event) => {
-        try {
-          const notif = JSON.parse(event.data);
-          console.log("📩 Nueva notificación:", notif);
-          this.notifications.unshift(notif);
-        } catch (err) {
-          console.error("Error procesando mensaje WS:", err);
-        }
-      };
+      this.ws.on("disconnect", () => {
+        console.log("❌ WebSocket desconectado");
+      });
+
+      this.ws.on("connect_error", error => {
+        console.error("❌ Error WebSocket:", error.message);
+      });
+
+      this.ws.on("new_notification", notif => {
+        console.log("📩 Notificación recibida:", notif);
+        this.notifications.unshift(notif);
+      });
     },
-
-    /** ✅ Marca como leída y sincroniza con backend */
     async markAsRead(notification) {
       if (notification.is_read) return;
 
       const token = localStorage.getItem("token");
-      const API_BASE = "http://localhost:8000"; // Ajusta si cambias de host
+      const API_BASE = "http://localhost:8000";
       const url = `${API_BASE}/backend/api/notifications/read/${notification.id}`;
 
       try {
@@ -255,7 +289,6 @@ export default {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        // ✅ Marca como leído localmente
         const index = this.notifications.findIndex(n => n.id === notification.id);
         if (index !== -1) {
           this.notifications[index].is_read = true;
@@ -266,16 +299,13 @@ export default {
         console.error("Error al marcar como leída:", err);
       }
     },
-
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },
-
     closeMenu() {
       this.showMenu = false;
     },
-
-      logout() {
+    logout() {
       const authStore = useAuthStore();
       authStore.logout();
       localStorage.removeItem("role");
@@ -283,25 +313,17 @@ export default {
       localStorage.removeItem("user");
       this.$router.push("/login");
     },
-
-
-
-
-    /** ✅ Formateo seguro de fecha (soporte MySQL) */
     formatDate(date) {
       if (!date) return "";
       return new Date(date.replace(" ", "T")).toLocaleString();
     }
-   }
+  }
 };
 </script>
 
 
+
 <style scoped>
-
-
-
-
 /* Mejora de icono campana */
 .notif-btn {
   position: relative;
@@ -430,8 +452,7 @@ export default {
 }
 
 .badge {
-  background: red;
-  color: white;
+  background: red;                                      color: white;
   border-radius: 50%;
   padding: 2px 6px;
   font-size: 12px;
@@ -450,8 +471,7 @@ export default {
   min-height: 100vh;
   background: #f4f6f9;
 }
-
-/* Header */
+                                                      /* Header */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -507,8 +527,7 @@ export default {
 /* Menú móvil */
 .mobile-menu {
   background: #1e1e2f;
-  padding: 1rem;
-  display: flex;
+  padding: 1rem;                                        display: flex;
   flex-direction: column;
 }
 
@@ -516,8 +535,7 @@ export default {
   color: white;
   padding: 12px;
   text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);  }
 
 .mobile-menu a:last-child {
   border-bottom: none;
@@ -540,10 +558,7 @@ export default {
 /* Responsive */
 @media (max-width: 768px) {
   .nav-links {
-    display: none;
-  }
-  .menu-toggle {
-    display: block;
-  }
-}
+    display: none;                                      }
+  .menu-toggle {                                          display: block;
+  }                                                   }
 </style>

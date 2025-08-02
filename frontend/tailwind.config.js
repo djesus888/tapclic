@@ -1,11 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./frontend/**/*.{html,js,ts,vue,jsx,tsx}"
-  ],
+
+content: [
+  "./index.html",
+  "./**/*.{html,js,ts,vue,jsx,tsx}" 
+],
   theme: {
-    extend: {},
+    extend: {
+      borderRadius: {
+    '2xl': '1rem'
+  }
+},
   },
   plugins: [],
 }
+

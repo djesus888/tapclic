@@ -20,8 +20,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 $base_path = str_replace('/backend', '', parse_url($request_uri, PHP_URL_PATH));
 
 
-
-
 // Si se accede a la raíz del backend, mostrar el frontend
 if ($_SERVER['REQUEST_URI'] === '/' || $_SERVER['REQUEST_URI'] === '/backend/' || $_SERVER['REQUEST_URI'] === '/backend/index.php') {
     $frontendPath = __DIR__ . '/../frontend/index.html';
@@ -46,6 +44,10 @@ require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/NotificationController.php';
 require_once __DIR__ . '/models/Notification.php';
+require_once __DIR__ . '/models/Service.php';
+require_once __DIR__ . '/controllers/ServiceController.php';
+
+
 
 // Leer datos JSON enviados
 $input_data = json_decode(file_get_contents("php://input"), true);
@@ -102,7 +104,17 @@ case preg_match('#^/api/notifications/read/(\d+)$#', $base_path, $matches):
     }
     break;
 
-
+// Obtener todos los servicios
+case preg_match('#^/api/services$#', $base_path):
+    if ($method === 'GET') {
+        $db = (new Database())->getConnection();
+        $controller = new ServiceController($db);
+        $controller->getAllServices();
+    } else {
+        http_response_code(405);
+        echo json_encode(["status" => "error", "message" => "Método no permitido"]);
+    }
+    break;
 
 
 
@@ -117,13 +129,17 @@ case preg_match('#^/api/notifications/read/(\d+)$#', $base_path, $matches):
     // Si no existe la ruta
 default:
     http_response_code(404);
-    // Si es petición AJAX o API, respondemos en JSON
-    if (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false) {
+    $acceptHeader = $_SERVER['HTTP_ACCEPT'] ?? '';
+    $isApiRequest = str_starts_with($base_path, '/api');
+
+    if (strpos($acceptHeader, 'application/json') !== false || $isApiRequest) {
+        header('Content-Type: application/json');
         echo json_encode([
             "status" => "error",
-            "message" => "Ruta no encontrada"
+            "message" => "Ruta no encontrada: " . $base_path
         ]);
     } else {
+        // HTML bonito solo si es navegador normal (no API)
         // Si es un navegador, mostramos HTML con estilo
         echo '
         <!DOCTYPE html>

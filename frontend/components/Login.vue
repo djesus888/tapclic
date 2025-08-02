@@ -1,106 +1,95 @@
-... ,<template>
-  <div class="login-container">
-    <div class="login-card">
-      <!-- LOGO / TÍTULO -->
-      <h2 class="login-title">🚀 TapClic</h2>
-
-      <!-- FORMULARIO LOGIN -->
-      <form @submit.prevent="handleLogin" class="register-form">
-        <!-- IDENTIFICADOR (Correo o Teléfono) -->
-        <div class="form-group">
-          <label for="identifier">Correo electrónico o Teléfono</label>
-          <input
-            id="identifier"
-            v-model.trim="identifier"
-            type="text"
-            required
-            placeholder="tuemail@ejemplo.com o 0414XXXXXXX"
-            aria-label="Correo electrónico o teléfono"
-          />
-        </div>
-
-        <!-- PASSWORD -->
-        <div class="form-group" style="position: relative;">
-          <label for="password">Contraseña</label>
-          <input
-            id="password"
-            v-model.trim="password"
-            :type="showPassword ? 'text' : 'password'"
-            required
-            placeholder="********"
-            aria-label="Contraseña"
-          />
-          <button
-            type="button"
-            @click="togglePasswordVisibility"
-            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; font-size: 1rem;"
-            aria-label="Mostrar u ocultar contraseña"
-          >
-            {{ showPassword ? '🙈' : '👁️' }}
-          </button>
-        </div>
-
-        <!-- BOTÓN LOGIN -->
-        <button type="submit" class="btn-submit" :disabled="loading">
-          <span v-if="!loading">Iniciar sesión</span>
-          <span v-else class="loader"></span>
-        </button>
-
-        <!-- OLVIDASTE CONTRASEÑA -->
-        <p
-          class="text-link"
-          @click="toggleForgotPassword"
-          style="cursor: pointer;"
-        >
-          ¿Olvidaste tu contraseña?
-        </p>
-
-        <!-- REGISTRO -->
-        <p class="text-link" style="margin-top: 8px;">
-          ¿No tienes cuenta?
-          <router-link to="/registro" class="text-blue-500 font-semibold">
-            Regístrate aquí
-          </router-link>
-        </p>
-      </form>
-
-      <!-- MENSAJE LOGIN -->
-      <div v-if="loginMsg" class="msg" v-html="loginMsg"></div>
-
-      <!-- FORMULARIO RECUPERAR CONTRASEÑA -->
-      <transition name="fade">
-        <div
-          v-if="showForgotPassword"
-          class="forgot-box mt-6 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20"
-        >
-          <h3 class="text-lg font-semibold text-gray-200 mb-3">
-            Recuperar contraseña
-          </h3>
-
-          <input
-            v-model.trim="resetEmail"
-            type="email"
-            placeholder="Ingresa tu correo"
-            class="form-group-input mb-3"
-            aria-label="Correo para recuperación"
-          />
-
-          <button
-            @click="handleResetPassword"
-            class="btn-secondary w-full flex items-center justify-center"
-            :disabled="loadingReset"
-          >
-            <span v-if="!loadingReset">Enviar enlace de recuperación</span>
-            <span v-else class="loader"></span>
-          </button>
-
-          <div v-if="resetMsg" class="mt-2 text-sm text-center" v-html="resetMsg"></div>
-        </div>
-      </transition>
-    </div>
-  </div>
+<template>
+<div class="login-container">
+<div class="login-card">
+<!-- LOGO / TÍTULO -->
+<h2 class="login-title">🚀 TapClic</h2>
+<!-- FORMULARIO LOGIN -->
+<form @submit.prevent="handleLogin" class="register-form">
+<!-- IDENTIFICADOR (Correo o Teléfono) -->
+<div class="form-group">
+<label for="identifier">Correo electrónico o Teléfono</label>
+<input
+id="identifier"
+v-model.trim="identifier"
+type="text"
+required
+placeholder="tuemail@ejemplo.com o 0414XXXXXXX"
+aria-label="Correo electrónico o teléfono"
+/>
+</div>
+<!-- PASSWORD -->
+<div class="form-group" style="position: relative;">
+<label for="password">Contraseña</label>
+<input
+id="password"
+v-model.trim="password"
+:type="showPassword ? 'text' : 'password'"
+required
+placeholder="********"
+aria-label="Contraseña"
+/>
+<button
+type="button"
+@click="togglePasswordVisibility"
+style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; font-size: 1rem;"
+aria-label="Mostrar u ocultar contraseña"
+>
+{{ showPassword ? '🙈' : '👁️' }}
+</button>
+</div>
+<!-- BOTÓN LOGIN -->
+<button type="submit" class="btn-submit" :disabled="loading">
+<span v-if="!loading">Iniciar sesión</span>
+<span v-else class="loader"></span>
+</button>
+<!-- OLVIDASTE CONTRASEÑA -->
+<p
+class="text-link"
+@click="toggleForgotPassword"
+style="cursor: pointer;"
+>
+¿Olvidaste tu contraseña?
+</p>
+<!-- REGISTRO -->
+<p class="text-link" style="margin-top: 8px;">
+¿No tienes cuenta?
+<router-link to="/registro" class="text-blue-500 font-semibold">
+Regístrate aquí
+</router-link>
+</p>
+</form>
+<!-- MENSAJE LOGIN -->
+<div v-if="loginMsg" class="msg" v-html="loginMsg"></div>
+<!-- FORMULARIO RECUPERAR CONTRASEÑA -->
+<transition name="fade">
+<div
+v-if="showForgotPassword"
+class="forgot-box mt-6 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20"
+>
+<h3 class="text-lg font-semibold text-gray-200 mb-3">
+Recuperar contraseña
+</h3>
+<input
+v-model.trim="resetEmail"
+type="email"
+placeholder="Ingresa tu correo"
+class="form-group-input mb-3"
+aria-label="Correo para recuperación"
+/>
+<button
+@click="handleResetPassword"
+class="btn-secondary w-full flex items-center justify-center"
+:disabled="loadingReset"
+>
+<span v-if="!loadingReset">Enviar enlace de recuperación</span>
+<span v-else class="loader"></span>
+</button>
+<div v-if="resetMsg" class="mt-2 text-sm text-center" v-html="resetMsg"></div>
+</div>
+</transition>
+</div>
+</div>
 </template>
-
 
 <script>
 import Swal from "sweetalert2";
@@ -110,19 +99,18 @@ export default {
   name: "Login",
   data() {
     return {
-      identifier: "", // Puede ser correo o teléfono
+      identifier: "",
       password: "",
       loading: false,
       showForgotPassword: false,
       resetEmail: "",
       loadingReset: false,
-      showPassword: false, // ✅ Mostrar/ocultar contraseña
+      showPassword: false,
       loginMsg: "",
+      resetmsg: "",
     };
   },
-
   computed: {
-    // ✅ Validaciones de formato
     isEmail() {
       return /\S+@\S+\.\S+/.test(this.identifier);
     },
@@ -130,11 +118,22 @@ export default {
       return /^[0-9]{7,15}$/.test(this.identifier);
     },
   },
+  mounted() {
+    const authStore = useAuthStore();
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
+    if (authStore.token || token) {
+      const redirectPath = {
+        admin: "/components/users",
+        driver: "/components/requests",
+        user: "/home",
+      }[role] || "/dashboard";
+
+      this.$router.push(redirectPath);
+    }
+  },
   methods: {
-    /**
-     * ✅ Petición POST con manejo avanzado de errores
-     */
     async fetchAPI(endpoint, payload) {
       try {
         const response = await fetch(endpoint, {
@@ -145,11 +144,7 @@ export default {
 
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(
-            `Error ${response.status}: ${
-              errorText || "El servidor no respondió correctamente"
-            }`
-          );
+          throw new Error(`Error ${response.status}: ${errorText || "El servidor no respondió correctamente"}`);
         }
 
         const result = await response.json();
@@ -160,41 +155,31 @@ export default {
         return result;
       } catch (error) {
         if (error.name === "TypeError") {
-          throw new Error(
-            "No se pudo conectar con el servidor. Verifica tu conexión a internet."
-          );
+          throw new Error("No se pudo conectar con el servidor. Verifica tu conexión a internet.");
         }
         throw error;
       }
     },
 
-    /**
-     * ✅ Inicio de sesión profesional con validaciones
-     */
     async handleLogin() {
-      // ✅ Validaciones locales
       if (!this.identifier || !this.password) {
-        Swal.fire({
+        return Swal.fire({
           title: "⚠️ Campos incompletos",
           text: "Por favor ingresa tu correo o teléfono y contraseña",
           icon: "warning",
-          confirmButtonColor: "#3085d6",
         });
-        return;
       }
 
       if (!this.isEmail && !this.isPhone) {
-        Swal.fire({
+        return Swal.fire({
           title: "⚠️ Formato inválido",
           text: "Debes ingresar un correo electrónico válido o un número de teléfono",
           icon: "warning",
         });
-        return;
       }
 
       this.loading = true;
 
-      // ✅ Mostrar alerta de carga
       Swal.fire({
         title: "Iniciando sesión...",
         text: "Por favor espera",
@@ -210,56 +195,49 @@ export default {
 
         const data = await this.fetchAPI("/api/login", payload);
 
-        // ✅ Validar respuesta
-        const isValidResponse =
-          data && data.status === "success" && data.token && typeof data.user === "object";
-
-        if (isValidResponse) {
+        if (data?.status === "success" && data?.token && data?.user) {
           const authStore = useAuthStore();
 
-          // ✅ Asegurar que si el backend no manda rol, asignamos uno temporal
-          const backendRole = data.user?.role;
-          const finalRole = backendRole && backendRole !== "" ? backendRole : "pending"; 
-          // ✅ Usamos "pending" en vez de "guest" para diferenciarlo de un invitado real
-
-          // ✅ Guardar sesión en Pinia
-          authStore.login({
-            user: data.user || {},
-            token: data.token,
-            role: finalRole,
-          });
-
-          // ✅ Guardar también en localStorage para Dashboard
-          localStorage.setItem("role", finalRole);
-
-          console.log("✅ ROLE GUARDADO:", finalRole);
-
-          // ✅ Determinar redirección según rol
-          const routesByRole = {
-            admin: "/dashboard/admin/users",
-            provider: "/dashboard/provider/requests",
-            client: "/dashboard/client/home",
+          // Validar que user tenga campos seguros
+          const user = {
+            id: data.user.id ?? null,
+            name: data.user.name ?? "Usuario",
+            email: data.user.email ?? "",
+            role: data.user.role ?? "pending",
+            avatar: data.user.avatar ?? null,
           };
 
-          const redirectPath = routesByRole[finalRole] || "/dashboard";
+          const role = user.role || "pending";
 
-          // ✅ Mostrar éxito
+          authStore.login({
+            user,
+            token: data.token,
+            role,
+          });
+
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("role", role);
+
+          const routesByRole = {
+            admin: "/components/users",
+            driver: "/components/requests",
+            user: "/home",
+          };
+
+          const redirectPath = routesByRole[role] || "/dashboard";
+
           Swal.fire({
             icon: "success",
             title: "Bienvenido",
-            text: `Hola, ${data.user?.name || "usuario"}`,
+            text: `Hola, ${user.name}`,
             timer: 1800,
             showConfirmButton: false,
           });
 
-          // ✅ Redirigir con seguridad después del Swal
           setTimeout(() => {
-            this.$nextTick(() => {
-              this.$router.push(redirectPath);
-            });
+            this.$router.push(redirectPath);
           }, 1500);
         } else {
-          // ❌ Respuesta inválida del backend
           Swal.fire({
             icon: "error",
             title: "Error de autenticación",
@@ -267,7 +245,6 @@ export default {
           });
         }
       } catch (err) {
-        // ❌ Error general de red/servidor
         Swal.fire({
           icon: "error",
           title: "Error de conexión",
@@ -275,7 +252,7 @@ export default {
         });
       } finally {
         this.loading = false;
-        this.password = ""; // ✅ Limpia la contraseña por seguridad
+        this.password = "";
       }
     },
 
@@ -283,17 +260,13 @@ export default {
       this.showForgotPassword = !this.showForgotPassword;
     },
 
-    /**
-     * ✅ Recuperar contraseña con feedback
-     */
     async handleResetPassword() {
       if (!this.resetEmail) {
-        Swal.fire({
+        return Swal.fire({
           title: "⚠️ Campo vacío",
           text: "Ingresa tu correo electrónico para continuar",
           icon: "warning",
         });
-        return;
       }
 
       Swal.fire({
@@ -331,7 +304,6 @@ export default {
       }
     },
 
-    // ✅ Alternar visibilidad de contraseña
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword;
     },
@@ -339,24 +311,20 @@ export default {
 };
 </script>
 
-
-
 <style scoped>
-/* Usamos estilos adaptados del registro para que se vea igual en dimensiones */
-
 /* CONTENEDOR PRINCIPAL */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #0f172a; /* Fondo oscuro para login */
+  background: #0f172a;
   padding: 20px;
 }
 
-/* TARJETA LOGIN adaptada de register-box */
+/* TARJETA LOGIN */
 .login-card {
-  background: #1e293b; /* mantengo fondo oscuro */
+  background: #1e293b;
   width: 100%;
   max-width: 400px;
   padding: 25px;
@@ -364,23 +332,24 @@ export default {
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* TÍTULO adaptado */
+/* TÍTULO */
 .login-title {
   text-align: center;
   font-size: 26px;
   font-weight: bold;
-  margin-bottom: 20px;                                                  color: #fff;
-  text-shadow: 0 0 5px rgba(0,0,0,0.7);
+  margin-bottom: 20px;
+  color: #fff;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
 }
 
-/* FORMULARIO usando registro */
+/* FORMULARIO */
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-/* GRUPOS */
+/* GRUPOS DE INPUT */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -392,7 +361,8 @@ export default {
   margin-bottom: 6px;
 }
 
-.form-group input {
+.form-group input,
+.form-group-input {
   padding: 12px;
   border: 1px solid #334155;
   border-radius: 8px;
@@ -401,23 +371,28 @@ export default {
   background: #0f172a;
   color: #e2e8f0;
   transition: border 0.2s ease-in-out;
+  width: 100%;
 }
 
-.form-group input::placeholder {
+.form-group input::placeholder,
+.form-group-input::placeholder {
   color: #94a3b8;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group-input:focus {
   border-color: #3b82f6;
   background: #1e293b;
 }
 
-/* BOTÓN adaptado de btn-submit, pero con color primario login */
+/* BOTÓN SUBMIT */
 .btn-submit {
   width: 100%;
   padding: 14px;
-  background: #2563eb; /* color azul */                                 color: white;
-  font-size: 17px;                                                      font-weight: 600;
+  background: #2563eb;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -436,7 +411,7 @@ export default {
   cursor: not-allowed;
 }
 
-/* Link estilizado igual registro */
+/* ENLACES */
 .text-link {
   text-align: center;
   font-size: 14px;
@@ -454,37 +429,18 @@ export default {
   text-decoration: underline;
 }
 
-/* MENSAJES */
+/* MENSAJE DE ERROR / INFORMACIÓN */
 .msg {
   text-align: center;
   margin-top: 15px;
   font-size: 15px;
-  color: #fbbf24; /* amarillo suave para mensajes */
+  color: #fbbf24;
 }
 
-/* FORMULARIO RECUPERAR CONTRASEÑA */
+/* CONTENEDOR RECUPERAR CONTRASEÑA */
 .forgot-box {
   background: #1e293b;
   border-radius: 12px;
-}
-
-/* input para recuperación */
-.form-group-input {                                                     padding: 12px;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  background: #0f172a;
-  color: #e2e8f0;
-  transition: border 0.2s ease-in-out;
-  width: 100%;
-}
-
-.form-group-input::placeholder {
-  color: #94a3b8;
-}
-.form-group-input:focus {
-  border-color: #3b82f6;                                                background: #1e293b;
 }
 
 /* RESPONSIVE */
@@ -492,10 +448,13 @@ export default {
   .login-card {
     padding: 20px;
   }
+
   .login-title {
     font-size: 22px;
   }
+
   .btn-submit {
-    font-size: 16px;                                                    }
+    font-size: 16px;
+  }
 }
 </style>

@@ -11,6 +11,11 @@ require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/ServiceController.php';
 require_once __DIR__ . '/../controllers/ChatController.php';
 require_once __DIR__ . '/../controllers/NotificationController.php';
+require_once __DIR__ . '/..controllers/ServiceController.php';
+require_once __DIR__ . '/../controllers/RequestController.php';
+require_once __DIR__ . '/../controllers/SupportController.php';
+require_once __DIR__ . '/../controllers/UserController.php';
+
 
 // ✅ Crear conexión usando la clase Database
 $db = new Database();
@@ -21,6 +26,12 @@ $authController         = new AuthController($conn);
 $serviceController      = new ServiceController($conn);
 $chatController         = new ChatController($conn);
 $notificationController = new NotificationController($conn); // ✅ NUEVO
+$serviceController      = new ServiceController($conn); // ✅ NUEVO
+$requestController      = new RequestController($conn);
+$supportController      = new SupportController($conn);
+$userController         = new UserController($conn);
+
+
 
 // ✅ Normalizar la URI automáticamente, sin hardcode
 $scriptName = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
@@ -50,6 +61,11 @@ if (preg_match('/^api\/services\/(\d+)$/', $uri, $matches) && $method === 'PUT')
 if (preg_match('/^api\/chat\/(\d+)$/', $uri, $matches) && $method === 'GET') {
     $serviceId = $matches[1];
     echo json_encode($chatController->getChatByService($serviceId));
+    exit;
+}
+if (preg_match('/^api\/messages\/(\d+)$/', $uri, $matches) && $method === 'GET') {
+    $providerId = $matches[1];
+    echo json_encode($chatController->getMessagesByProvider($providerId));
     exit;
 }
 
@@ -97,6 +113,10 @@ switch (true) {
         echo json_encode($serviceController->createService($inputData));
         break;
 
+case $uri === 'api/services/unrated' && $method === 'POST':
+    echo json_encode($serviceController->getUnratedServices($inputData));
+    break;
+
     case $uri === 'api/chat' && $method === 'POST':
         echo json_encode($chatController->sendMessage($inputData));
         break;
@@ -110,6 +130,112 @@ switch (true) {
             $inputData['message']       ?? ''
         ));
         break;
+
+      /*
+=======================================
+✅ RUTAS PARA SOLICITUDES
+=======================================
+*/
+case $uri === 'api/requests/get' && $method === 'POST':
+    echo json_encode($requestController->getUserRequests($inputData));
+    break;
+
+case $uri === 'api/requests/accept' && $method === 'POST':
+    echo json_encode($requestController->acceptRequest($inputData));
+    break;
+
+case $uri === 'api/requests/reject' && $method === 'POST':
+    echo json_encode($requestController->rejectRequest($inputData));
+    break;
+
+/*
+=======================================
+✅ RUTAS PARA SOPORTE
+=======================================
+*/
+case $uri === 'api/support/create' && $method === 'POST':
+    echo json_encode($supportController->createTicket($inputData));
+    break;
+
+case $uri === 'api/support/tickets' && $method === 'POST':
+    echo json_encode($supportController->getUserTickets($inputData));
+    break;
+
+case $uri === 'api/support/reply' && $method === 'POST':
+    echo json_encode($supportController->replyToTicket($inputData));
+    break;
+
+/*
+=======================================
+✅ RUTAS PARA PERFIL Y CONFIGURACIÓN
+=======================================
+*/
+case $uri === 'api/profile/update' && $method === 'POST':
+    echo json_encode($userController->updateProfile($inputData));
+    break;
+
+case $uri === 'api/password/change' && $method === 'POST':
+    echo json_encode($userController->changePassword($inputData));
+    break;
+
+case $uri === 'api/avatar/upload' && $method === 'POST':
+    echo json_encode($userController->uploadAvatar());
+    break;
+
+case $uri === 'api/preferences/update' && $method === 'POST':
+    echo json_encode($userController->updatePreferences($inputData));
+    break;
+
+/*
+=======================================
+✅ RUTAS PARA CALIFICAR SERVICIOS
+=======================================
+*/
+case $uri === 'api/services/unrated' && $method === 'POST':
+    echo json_encode($serviceController->getUnratedServices($inputData));
+    break;
+
+case $uri === 'api/services/rate' && $method === 'POST':
+    echo json_encode($serviceController->rateService($inputData));
+    break;
+
+case $uri === 'api/services/available' && $method === 'GET':
+    echo json_encode($serviceController->getAvailableServices());
+    break;
+
+case $uri === 'api/user/profile' && $method === 'POST':
+    echo json_encode($userController->getUserProfile($inputData));
+    break;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     default:
         http_response_code(404);

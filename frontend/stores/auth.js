@@ -4,7 +4,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
-    role: localStorage.getItem('role') || null // 'client' | 'provider' | 'admin'
+    role: localStorage.getItem('role') || null // 'user' | 'driver' | 'admin'
   }),
 
   actions: {
@@ -12,42 +12,51 @@ export const useAuthStore = defineStore('auth', {
      * ✅ Guardar sesión al iniciar login
      */
     login(userData) {
-      this.user = userData.user
-      this.token = userData.token
-      this.role = userData.role
+      const { id, name, email, role } = userData.user;
 
-      // 🔹 Guardar en localStorage para persistencia
-      localStorage.setItem('user', JSON.stringify(userData.user))
-      localStorage.setItem('token', userData.token)
-      localStorage.setItem('role', userData.role)
+      // 🧹 Evitar estructuras circulares
+      const cleanedUser = { id, name, email };
+
+      this.user = cleanedUser;
+      this.token = userData.token;
+      this.role = role;
+
+      // 💾 Guardar en localStorage de forma segura
+      localStorage.setItem('user', JSON.stringify(cleanedUser));
+      localStorage.setItem('token', userData.token);
+      localStorage.setItem('role', role);
     },
 
     /**
      * ✅ Cerrar sesión limpiando estado y almacenamiento
      */
     logout() {
-      this.user = null
-      this.token = null
-      this.role = null
+      this.user = null;
+      this.token = null;
+      this.role = null;
 
-      // 🔹 Eliminar del localStorage
-      localStorage.removeItem('user')
-      localStorage.removeItem('token')
-      localStorage.removeItem('role')
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
     },
 
     /**
      * ✅ Restaurar sesión automáticamente si existe en localStorage
      */
     initializeAuth() {
-      const storedUser = localStorage.getItem('user')
-      const storedToken = localStorage.getItem('token')
-      const storedRole = localStorage.getItem('role')
+      try {
+        const storedUser = localStorage.getItem('user');
+        const storedToken = localStorage.getItem('token');
+        const storedRole = localStorage.getItem('role');
 
-      if (storedUser && storedToken) {
-        this.user = JSON.parse(storedUser)
-        this.token = storedToken
-        this.role = storedRole
+        if (storedUser && storedToken && storedRole) {
+          this.user = JSON.parse(storedUser);
+          this.token = storedToken;
+          this.role = storedRole;
+        }
+      } catch (error) {
+        console.error("Error restaurando auth:", error);
+        this.logout(); // 🔒 Por seguridad
       }
     },
 
@@ -55,7 +64,7 @@ export const useAuthStore = defineStore('auth', {
      * ✅ Saber si está autenticado (true/false)
      */
     isAuthenticated() {
-      return !!this.token && !!this.user
+      return !!this.token && !!this.user;
     }
   }
-})
+});

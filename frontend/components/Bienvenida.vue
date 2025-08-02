@@ -2,7 +2,7 @@
   <div>
     <!-- HEADER Y MENÚ -->
     <header>
-      <div class="logo">TapClic</div>
+      <div class="logo">TapClic Bienvida</div>
     </header>
 
     <nav>
@@ -43,7 +43,7 @@
       <h2>Contacto</h2>
       <p>
         ¿Tienes preguntas? Escríbenos a
-        <a href="mailto:soporte@teresuelvo.com">soporte@teresuelvo.com</a>
+        <a href="mailto:soporte@tapclic.com">soporte@tapclic.com</a>
       </p>
     </section>
 

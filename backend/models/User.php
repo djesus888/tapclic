@@ -103,6 +103,86 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+
+
+
+    // 1) updateProfile
+    public function updateProfile(int $userId, string $name, string $email, string $phone): bool
+    {
+        $sql = "UPDATE {$this->table}
+                SET name = :name, email = :email, phone = :phone
+                WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':name',  $name);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':phone', $phone);
+        $stmt->bindParam(':id',    $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    // 2) verifyPassword
+    public function verifyPassword(int $userId, string $currentPassword): bool
+    {
+        $sql = "SELECT password FROM {$this->table} WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row && password_verify($currentPassword, $row['password']);
+    }
+
+    // 2) updatePassword
+    public function updatePassword(int $userId, string $newPassword): bool
+    {
+        $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+        $sql = "UPDATE {$this->table} SET password = :pass WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':pass', $hashed);
+        $stmt->bindParam(':id',   $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    // 3) updateAvatar
+    public function updateAvatar(int $userId, string $avatarUrl): bool
+    {
+        $sql = "UPDATE {$this->table} SET avatar_url = :url WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':url', $avatarUrl);
+        $stmt->bindParam(':id',  $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    // 4) updatePreferences
+    public function updatePreferences(int $userId, string $prefsJson): bool
+    {
+        $sql = "UPDATE {$this->table} SET preferences = :prefs WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':prefs', $prefsJson);
+        $stmt->bindParam(':id',    $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    // 5) updateProviderData
+    public function updateProviderData(int $userId, string $address, string $categoriesJson, string $coverageJson): bool
+    {
+        $sql = "UPDATE {$this->table}
+                SET business_address    = :address,
+                    service_categories  = :cats,
+                    coverage_area       = :cov
+                WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':address', $address);
+        $stmt->bindParam(':cats',    $categoriesJson);
+        $stmt->bindParam(':cov',     $coverageJson);
+        $stmt->bindParam(':id',      $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+
+
+
+
     /**
      * Leer un usuario por ID
      */
